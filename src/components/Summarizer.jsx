@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import './home.css';
+import './Summarizer.css';
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 
