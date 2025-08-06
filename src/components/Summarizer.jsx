@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
+import { uploadAndProcessDocument, submitSummaryFeedback } from '../apis/summarizerApi';
+import { SUMMARY_DECISIONS } from '../constants/summaryConstants';
 import './Summarizer.css';
-const backendUrl = import.meta.env.VITE_BACKEND_URL;
-
 
 const Home = () => {
   const [pdfFile, setPdfFile] = useState(null);
@@ -39,21 +39,7 @@ const Home = () => {
         throw new Error('Please upload a PDF or TXT file.');
       }
       
-      // Use /api/upload/load-document for PDF/TXT files
-      const formData = new FormData();
-      formData.append('document', pdfFile);
-      
-      const response = await fetch(`${backendUrl}/api/upload/load-document`, {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
+      const data = await uploadAndProcessDocument(pdfFile);
       
       if (data.summary) {
         setSummary(data.summary);
@@ -75,23 +61,7 @@ const Home = () => {
     setSuccessMessage('');
 
     try {
-      const response = await fetch(`${backendUrl}/api/upload/save-summary`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          threadId: threadId,
-          decision: accepted ? 'approve' : 'reject'
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
+      const data = await submitSummaryFeedback(threadId, accepted);
       
       if (data.success) {
         setSuccessMessage(data.message);
